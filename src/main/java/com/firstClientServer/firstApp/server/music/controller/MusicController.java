@@ -6,6 +6,7 @@ import com.firstClientServer.firstApp.server.music.service.MusicService;
 import jakarta.validation.Valid;
 import jakarta.xml.bind.ValidationException;
 import lombok.AllArgsConstructor;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.List;
 // == @Controller + @ResponseBody ( object returned serialized into JSON + back into the HttpResponse object )
 @AllArgsConstructor
 @RequestMapping("/api/music")
+@Validated
 public class MusicController {
 
     private final MusicService musicService;
@@ -40,9 +42,8 @@ public class MusicController {
     }
 
     @DeleteMapping("/track/{id}")
-    public String deleteTrack(@PathVariable("id") Long trackId) {
-        musicService.deleteTrackById(trackId);
-        return "Deleted Successfully";
+    public void deleteTrack(@PathVariable("id") Long trackId) {
+        musicService.deleteTrackById(trackId); // TODO add track deletion exception
     }
 
 }

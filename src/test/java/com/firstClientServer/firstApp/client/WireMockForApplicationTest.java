@@ -7,7 +7,6 @@ import com.firstClientServer.firstApp.server.music.entity.TrackEntity;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +21,7 @@ import java.util.List;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest // starts full app context - integration testing
@@ -35,7 +35,7 @@ class WireMockForApplicationTest {
     private MockMvc mvc;
 
     @Autowired
-    ObjectMapper mapper;
+    private ObjectMapper mapper;
 
     @BeforeAll
     static void init() {
@@ -61,7 +61,7 @@ class WireMockForApplicationTest {
         List<TrackEntity> trackList = mapper.readValue(response, new TypeReference<>() {
         });
 
-        Assertions.assertEquals(trackList, getTrackEntities());
+        assertEquals(trackList, getTrackEntities());
 
         verify(getRequestedFor(urlPathEqualTo("/api/music/trackList")));
     }
@@ -78,7 +78,7 @@ class WireMockForApplicationTest {
                 .andReturn().getResponse().getContentAsString();
 
         TrackEntity responseTrack = mapper.readValue(responseContent, TrackEntity.class);
-        Assertions.assertEquals(track, responseTrack);
+        assertEquals(track, responseTrack);
 
     }
 
@@ -95,7 +95,7 @@ class WireMockForApplicationTest {
                 .andReturn().getResponse().getContentAsString();
 
         TrackEntity trackResponse = mapper.readValue(responseContent, TrackEntity.class);
-        Assertions.assertEquals(track, trackResponse);
+        assertEquals(track, trackResponse);
     }
 
     private String getJsonTestTrackList() throws JsonProcessingException {

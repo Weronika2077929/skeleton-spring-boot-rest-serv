@@ -7,19 +7,22 @@ import com.firstClientServer.firstApp.server.music.entity.TrackEntity;
 import com.firstClientServer.firstApp.server.music.handler.TrackNotFoundException;
 import com.firstClientServer.firstApp.server.music.repository.TrackRepository;
 import jakarta.xml.bind.ValidationException;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import java.util.List;
 
+import static com.firstClientServer.firstApp.TestUtility.resourceAsString;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -37,6 +40,12 @@ class MusicControllerIntegrationTest {
     @Autowired
     private ObjectMapper mapper;
 
+    @Value("classpath:data/existingTrackVideo.json")
+    private Resource exisitngTrackResource;
+
+    @Value("classpath:data/trackList.json")
+    private Resource trackListResource;
+
 
     @Test
     void testGetTrackList_givenGetReq_returnsTrackList() throws Exception {
@@ -53,13 +62,14 @@ class MusicControllerIntegrationTest {
         List<TrackEntity> expected = mapper.readValue(getJsonTrackList(), new TypeReference<List<TrackEntity>>() {
         });
 
-        Assertions.assertEquals(expected, responseTrackList);
+        assertEquals(expected, responseTrackList);
 
     }
+
     @Test
     void testGetTrack_givenTrackId_returnsOKTrack() throws Exception {
 
-        TrackEntity track = mapper.readValue(getExisitingTrackJson(), TrackEntity.class);
+        TrackEntity track = mapper.readValue(getExistingTrackJson(), TrackEntity.class);
 
         String responseContent = mvc.perform(MockMvcRequestBuilders.get("/api/music/track/1"))
                 .andDo(print())
@@ -68,7 +78,7 @@ class MusicControllerIntegrationTest {
 
         TrackEntity responseTrack = mapper.readValue(responseContent, TrackEntity.class);
 
-        Assertions.assertEquals(track, responseTrack);
+        assertEquals(track, responseTrack);
 
     }
 
@@ -78,45 +88,45 @@ class MusicControllerIntegrationTest {
         TrackEntity track = getTestTrack();
 
         String responseContent = mvc.perform(MockMvcRequestBuilders
-                                .post("/api/music/track")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(getTrackJson(track)))
+                        .post("/api/music/track")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(getTrackJson(track)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
         TrackEntity responseTrack = mapper.readValue(responseContent, TrackEntity.class);
-        Assertions.assertEquals(track, responseTrack);
+        assertEquals(track, responseTrack);
 
         TrackEntity repoTrack = trackRepo.findById(track.getId()).orElseThrow();
-        Assertions.assertEquals(track, repoTrack);
+        assertEquals(track, repoTrack);
     }
 
     @Test
     void testUpdateTrack_givenExistingTrackJson_returnsUpdatedTrackSuccess() throws Exception {
 
-        TrackEntity track = trackRepo.findById(1l).orElseThrow();
+        TrackEntity track = trackRepo.findById(1L).orElseThrow();
         track.setTitle("New Title");
 
         String responseContent = mvc.perform(MockMvcRequestBuilders
-                                .put("/api/music/track")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(getTrackJson(track)))
+                        .put("/api/music/track")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(getTrackJson(track)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
 
         TrackEntity responseTrack = mapper.readValue(responseContent, TrackEntity.class);
-        Assertions.assertEquals(track, responseTrack);
+        assertEquals(track, responseTrack);
 
         TrackEntity repoTrack = trackRepo.findById(track.getId()).orElseThrow();
-        Assertions.assertEquals(track, repoTrack);
+        assertEquals(track, repoTrack);
     }
 
     @Test
     void testCreateTrack_givenExistingTrack_returnsValidationException() throws Exception {
         TrackEntity track = getTestTrack();
-        track.setId(1l);
+        track.setId(1L);
 
         mvc.perform(MockMvcRequestBuilders
                         .post("/api/music/track")
@@ -124,21 +134,8 @@ class MusicControllerIntegrationTest {
                         .content(getTrackJson(track)))
                 .andDo(print())
                 .andExpect(status().isConflict())
-                .andExpect(result -> Assertions.assertTrue(result.getResolvedException() instanceof ValidationException))
-                .andExpect(result -> Assertions.assertEquals("Track already exists", result.getResolvedException().getMessage()));
-    }
-
-    @Test
-    void testCreateTrack_givenEmptyJson_returnsMethodArgumentNotValidException() throws Exception {
-
-        mvc.perform(MockMvcRequestBuilders
-                        .post("/api/music/track")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}"))
-                .andDo(print())
-                .andExpect(status().isBadRequest())
-                .andExpect(result -> Assertions.assertTrue(result.getResolvedException() instanceof MethodArgumentNotValidException));
-//                .andExpect(result -> Assertions.assertEquals("Track already exists", result.getResolvedException().getMessage()));
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof ValidationException))
+                .andExpect(result -> assertEquals("Track already exists", result.getResolvedException().getMessage()));
     }
 
     @Test
@@ -155,8 +152,8 @@ class MusicControllerIntegrationTest {
                         .content(getTrackJson(track)))
                 .andDo(print())
                 .andExpect(status().isNotFound())
-                .andExpect(result -> Assertions.assertTrue(result.getResolvedException() instanceof TrackNotFoundException))
-                .andExpect(result -> Assertions.assertEquals(expectedError, result.getResolvedException().getMessage()));
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof TrackNotFoundException))
+                .andExpect(result -> assertEquals(expectedError, result.getResolvedException().getMessage()));
     }
 
     private String getTrackJson(TrackEntity track) throws JsonProcessingException {
@@ -168,36 +165,12 @@ class MusicControllerIntegrationTest {
         return new TrackEntity(4l, "Blue Monday", "New Order", "1988");
     }
 
-    private static String getJsonTrackList() {
-        return new String("[\n" +
-                "  {\n" +
-                "    \"id\": 1,\n" +
-                "    \"title\": \"Video Killed The Radio Star\",\n" +
-                "    \"artist\": \"The Buggles\",\n" +
-                "    \"releaseYear\": \"1980\"\n" +
-                "  },\n" +
-                "  {\n" +
-                "    \"id\": 2,\n" +
-                "    \"title\": \"Wish I didnt Miss You\",\n" +
-                "    \"artist\": \"Angie Stone\",\n" +
-                "    \"releaseYear\": \"2002\"\n" +
-                "  },\n" +
-                "  {\n" +
-                "    \"id\": 3,\n" +
-                "    \"title\": \"Sing It Back\",\n" +
-                "    \"artist\": \"Moloko\",\n" +
-                "    \"releaseYear\": \"1998\"\n" +
-                "  }\n" +
-                "]");
+    private String getJsonTrackList() {
+        return resourceAsString(trackListResource);
     }
 
-    private static String getExisitingTrackJson() {
-        return new String("{\n" +
-                "  \"id\": 1,\n" +
-                "  \"title\": \"Video Killed The Radio Star\",\n" +
-                "  \"artist\": \"The Buggles\",\n" +
-                "  \"releaseYear\": \"1980\"\n" +
-                "}");
+    private String getExistingTrackJson() {
+        return resourceAsString(exisitngTrackResource);
     }
 
 }

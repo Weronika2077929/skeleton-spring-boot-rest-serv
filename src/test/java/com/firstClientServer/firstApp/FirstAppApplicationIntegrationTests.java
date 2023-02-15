@@ -14,10 +14,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class FirstAppApplicationIntegrationTests {
 
     @Autowired
-    MusicController musicController;
+    private MusicController musicController;
 
     @Autowired
-    TrackRepository trackRepo;
+    private TrackRepository trackRepo;
 
     @Test
     void contextLoads() {
@@ -25,13 +25,13 @@ public class FirstAppApplicationIntegrationTests {
 
 
     @Test
-    public void testMusicControllerAutowired() throws Exception {
+    void testMusicControllerAutowired() {
         assertThat(musicController).isNotNull();
     }
 
     @Test
     void testCreateTrack() throws ValidationException {
-        TrackEntity track = new TrackEntity(5l, "Title", "Artist", "2023");
+        TrackEntity track = new TrackEntity(5L, "Title", "Artist", "2023");
 
         musicController.saveTrack(track);
         Iterable<TrackEntity> tracks = trackRepo.findAll();
