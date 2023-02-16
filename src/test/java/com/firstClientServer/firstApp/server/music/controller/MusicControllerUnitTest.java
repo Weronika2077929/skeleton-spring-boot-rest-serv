@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.firstClientServer.firstApp.TestUtility;
 import com.firstClientServer.firstApp.server.music.entity.TrackEntity;
+import com.firstClientServer.firstApp.server.music.repository.TrackRepository;
 import com.firstClientServer.firstApp.server.music.service.MusicService;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -29,6 +30,8 @@ class MusicControllerUnitTest {
 
     @MockBean // dependant beans should be mocked with @WebMvcTest, because it does not load full app context
     private MusicService musicService;
+    @MockBean
+    private TrackRepository trackRepository;
     @Autowired
     private MockMvc mvc;
     @Autowired
@@ -59,6 +62,7 @@ class MusicControllerUnitTest {
 
         TrackEntity track = getTrack();
         when(musicService.getTrack(track.getId())).thenReturn(track);
+        when(trackRepository.existsById(track.getId())).thenReturn(true); // mock due to @Exist_wl validation
 
         String responseContent = mvc.perform(MockMvcRequestBuilders
                         .get("/api/music/track/5"))

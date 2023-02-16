@@ -1,7 +1,7 @@
 package com.firstClientServer.firstApp.server.music.service;
 
+import com.firstClientServer.firstApp.server.music.controller.payload.TrackUpdateRequest;
 import com.firstClientServer.firstApp.server.music.entity.TrackEntity;
-import com.firstClientServer.firstApp.server.music.handler.TrackNotFoundException;
 import com.firstClientServer.firstApp.server.music.repository.TrackRepository;
 import jakarta.xml.bind.ValidationException;
 import lombok.AllArgsConstructor;
@@ -18,7 +18,7 @@ public class MusicService {
     private final TrackRepository trackRepo;
 
     public TrackEntity saveTrack(TrackEntity track) throws ValidationException {
-        if( trackRepo.existsById(track.getId()) ) {
+        if (trackRepo.existsById(track.getId())) {
             throw new ValidationException("Track already exists");
         }
         return trackRepo.save(track);
@@ -28,10 +28,16 @@ public class MusicService {
         return trackRepo.findById(id).orElseThrow();
     }
 
-    public TrackEntity updateTrack(TrackEntity track) throws ValidationException, TrackNotFoundException {
-        if( !isPresent(track.getId()))
-            throw new TrackNotFoundException(track);
-        return trackRepo.save(track);
+    public TrackEntity updateTrack(Long trackId, TrackUpdateRequest track) {
+
+        TrackEntity saveTrack = TrackEntity.builder()
+                .id(trackId)
+                .title(track.getTitle())
+                .artist(track.getArtist())
+                .releaseYear(track.getReleaseYear())
+                .build();
+
+        return trackRepo.save(saveTrack);
     }
 
     public List<TrackEntity> getTrackList() {

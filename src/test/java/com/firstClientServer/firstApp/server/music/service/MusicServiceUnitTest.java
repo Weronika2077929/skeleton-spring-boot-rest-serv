@@ -1,7 +1,7 @@
 package com.firstClientServer.firstApp.server.music.service;
 
+import com.firstClientServer.firstApp.server.music.controller.payload.TrackUpdateRequest;
 import com.firstClientServer.firstApp.server.music.entity.TrackEntity;
-import com.firstClientServer.firstApp.server.music.handler.TrackNotFoundException;
 import com.firstClientServer.firstApp.server.music.repository.TrackRepository;
 import jakarta.xml.bind.ValidationException;
 import org.junit.jupiter.api.Test;
@@ -33,7 +33,7 @@ class MusicServiceUnitTest {
         TrackEntity returnedTrack = musicService.saveTrack(track);
         assertEquals(track, returnedTrack);
         verify(trackRepo, Mockito.times(1)).existsById(Mockito.anyLong());
-        verify(trackRepo, Mockito.times(1)).save(Mockito.any());
+        verify(trackRepo, Mockito.times(1)).save(track);
     }
 
     @Test
@@ -49,16 +49,16 @@ class MusicServiceUnitTest {
     }
 
     @Test
-    void testUpdateTrack_givenNewTrack_returnValidationException() throws ValidationException {
-        TrackEntity track = new TrackEntity(1l, "Title", "Artist", "1998");
-        String expectedError = String.format("Track with id: %s not found", track.getId());
+    void testUpdateTrack_givenTrackUpdate_returnSuccess() { // TODO double check this test
 
-        when(trackRepo.existsById(Mockito.anyLong())).thenReturn(false);
+        TrackUpdateRequest trackUpdateRequest = new TrackUpdateRequest("Title", "Artist", "1998");
+        TrackEntity track = new TrackEntity(1L, trackUpdateRequest.getTitle(), trackUpdateRequest.getArtist(), trackUpdateRequest.getReleaseYear());
 
-        TrackNotFoundException validationException = assertThrows(TrackNotFoundException.class, () -> {
-            musicService.updateTrack(track);
-        });
-        assertEquals(expectedError, validationException.getMessage());
-        verify(trackRepo,Mockito.never()).save(Mockito.any());
+        when(trackRepo.save(track)).thenReturn(track);
+
+        TrackEntity updatedTrack = musicService.updateTrack(track.getId(), trackUpdateRequest);
+
+        assertEquals(track, updatedTrack);
+        verify(trackRepo, Mockito.times(1)).save(track);
     }
 }

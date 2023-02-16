@@ -1,6 +1,7 @@
 package com.firstClientServer.firstApp.server.music.handler;
 
 
+import jakarta.validation.ConstraintViolationException;
 import jakarta.xml.bind.ValidationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -32,6 +33,13 @@ public class MusicServiceExceptionHandler extends ResponseEntityExceptionHandler
     public ResponseEntity handleTrackNotFoundException(TrackNotFoundException exception) {
         log.info(exception.getMessage());
         return new ResponseEntity(exception.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(value = ConstraintViolationException.class) // @Exists_wl check
+    @ResponseBody
+    public ResponseEntity handleConstraintViolationException(ConstraintViolationException exception) {
+        log.info(exception.getMessage());
+        return new ResponseEntity(exception.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @Override

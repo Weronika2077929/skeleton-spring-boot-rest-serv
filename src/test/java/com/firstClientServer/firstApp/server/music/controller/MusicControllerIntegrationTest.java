@@ -4,8 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.firstClientServer.firstApp.server.music.entity.TrackEntity;
-import com.firstClientServer.firstApp.server.music.handler.TrackNotFoundException;
 import com.firstClientServer.firstApp.server.music.repository.TrackRepository;
+import jakarta.validation.ConstraintViolationException;
 import jakarta.xml.bind.ValidationException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +17,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import java.util.List;
 
@@ -109,7 +110,7 @@ class MusicControllerIntegrationTest {
         track.setTitle("New Title");
 
         String responseContent = mvc.perform(MockMvcRequestBuilders
-                        .put("/api/music/track")
+                        .put("/api/music/track/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(getTrackJson(track)))
                 .andDo(print())
@@ -138,21 +139,33 @@ class MusicControllerIntegrationTest {
                 .andExpect(result -> assertEquals("Track already exists", result.getResolvedException().getMessage()));
     }
 
+        @Test
+    void testCreateTrack_givenEmptyJson_returnsMethodArgumentNotValidException() throws Exception { // TODO Fix this CREATE build in @Vaild does not work on empty json {}
+
+        mvc.perform(MockMvcRequestBuilders
+                        .post("/api/music/track")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof MethodArgumentNotValidException)); // from @Valid
+    }
+
     @Test
-    void testUpdateTrack_givenNewTrack_returnsValidationException() throws Exception {
+    void testUpdateTrack_givenNewTrack_returnsValidationException() throws Exception { // @Exists_wl validation check
 
         TrackEntity track = getTestTrack();
         long id = 9l;
         track.setId(id);
-        String expectedError = String.format("Track with id: %s not found", id);
+        String expectedError = "updateTrack.trackId: doesnt.exist"; // TODO change error message
 
         mvc.perform(MockMvcRequestBuilders
-                        .put("/api/music/track")
+                        .put("/api/music/track/9")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(getTrackJson(track)))
                 .andDo(print())
-                .andExpect(status().isNotFound())
-                .andExpect(result -> assertTrue(result.getResolvedException() instanceof TrackNotFoundException))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof ConstraintViolationException))
                 .andExpect(result -> assertEquals(expectedError, result.getResolvedException().getMessage()));
     }
 

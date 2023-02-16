@@ -1,7 +1,8 @@
 package com.firstClientServer.firstApp.server.music.controller;
 
+import com.firstClientServer.firstApp.server.music.controller.payload.TrackUpdateRequest;
 import com.firstClientServer.firstApp.server.music.entity.TrackEntity;
-import com.firstClientServer.firstApp.server.music.handler.TrackNotFoundException;
+import com.firstClientServer.firstApp.server.music.handler.Exists_wl;
 import com.firstClientServer.firstApp.server.music.service.MusicService;
 import jakarta.validation.Valid;
 import jakarta.xml.bind.ValidationException;
@@ -26,14 +27,15 @@ public class MusicController {
     }
 
     @GetMapping("/track/{id}")
-    public TrackEntity getTrack(@PathVariable("id") Long trackId) {
+    public TrackEntity getTrack(@PathVariable("id") @Exists_wl Long trackId) {
         return musicService.getTrack(trackId);
     }
 
-
-    @PutMapping("/track")
-    public TrackEntity updateTrack(@Valid @RequestBody TrackEntity track) throws ValidationException, TrackNotFoundException {
-        return musicService.updateTrack(track);
+    // https://www.baeldung.com/spring-aop
+    @PutMapping("/track/{id}")
+    public TrackEntity updateTrack(@PathVariable("id") @Exists_wl Long trackId,
+                                   @Valid @RequestBody TrackUpdateRequest track) {
+        return musicService.updateTrack(trackId, track);
     }
 
     @GetMapping("/trackList")
@@ -42,8 +44,8 @@ public class MusicController {
     }
 
     @DeleteMapping("/track/{id}")
-    public void deleteTrack(@PathVariable("id") Long trackId) {
-        musicService.deleteTrackById(trackId); // TODO add track deletion exception
+    public void deleteTrack(@PathVariable("id") @Exists_wl Long trackId) {
+        musicService.deleteTrackById(trackId);
     }
 
 }
