@@ -3,10 +3,10 @@ package com.firstClientServer.firstApp.server.music.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.firstClientServer.firstApp.server.music.controller.payload.TrackCreateRequest;
 import com.firstClientServer.firstApp.server.music.entity.TrackEntity;
 import com.firstClientServer.firstApp.server.music.repository.TrackRepository;
 import jakarta.validation.ConstraintViolationException;
-import jakarta.xml.bind.ValidationException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -84,7 +84,7 @@ class MusicControllerIntegrationTest {
     }
 
     @Test
-    void testCreateTrack_givenNewTrackJson_returnsOKNewTrack() throws Exception {
+    void testCreateTrack_givenNewTrackJson_returnsOKNewTrack() throws Exception { // TODO refactor it
 
         TrackEntity track = getTestTrack();
 
@@ -125,21 +125,23 @@ class MusicControllerIntegrationTest {
     }
 
     @Test
-    void testCreateTrack_givenExistingTrack_returnsValidationException() throws Exception {
-        TrackEntity track = getTestTrack();
-        track.setId(1L);
+    void testCreateTrack_givenTrackRequestEmptyTitle_returnsValidationException() throws Exception {
+        TrackCreateRequest trackRequest = getTestTrackCreateRequest();
+        trackRequest.setTitle("");
 
-        mvc.perform(MockMvcRequestBuilders
+        String contentAsString = mvc.perform(MockMvcRequestBuilders
                         .post("/api/music/track")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(getTrackJson(track)))
+                        .content(getTrackJson(trackRequest)))
                 .andDo(print())
-                .andExpect(status().isConflict())
-                .andExpect(result -> assertTrue(result.getResolvedException() instanceof ValidationException))
-                .andExpect(result -> assertEquals("Track already exists", result.getResolvedException().getMessage()));
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> assertTrue(result.getResolvedException() instanceof MethodArgumentNotValidException))
+                .andReturn().getResponse().getContentAsString();
+
+        assertEquals("[Title is empty]", contentAsString);
     }
 
-        @Test
+    @Test
     void testCreateTrack_givenEmptyJson_returnsMethodArgumentNotValidException() throws Exception { // TODO Fix this CREATE build in @Vaild does not work on empty json {}
 
         mvc.perform(MockMvcRequestBuilders
@@ -169,13 +171,17 @@ class MusicControllerIntegrationTest {
                 .andExpect(result -> assertEquals(expectedError, result.getResolvedException().getMessage()));
     }
 
-    private String getTrackJson(TrackEntity track) throws JsonProcessingException {
+    private String getTrackJson(Object track) throws JsonProcessingException {
         String trackJson = mapper.writeValueAsString(track);
         return trackJson;
     }
 
     private static TrackEntity getTestTrack() {
         return new TrackEntity(4l, "Blue Monday", "New Order", "1988");
+    }
+
+    private static TrackCreateRequest getTestTrackCreateRequest() {
+        return new TrackCreateRequest("Blue Monday", "New Order", "1988");
     }
 
     private String getJsonTrackList() {

@@ -3,6 +3,7 @@ package com.firstClientServer.firstApp.server.music.controller;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.firstClientServer.firstApp.TestUtility;
+import com.firstClientServer.firstApp.server.music.controller.payload.TrackCreateRequest;
 import com.firstClientServer.firstApp.server.music.entity.TrackEntity;
 import com.firstClientServer.firstApp.server.music.repository.TrackRepository;
 import com.firstClientServer.firstApp.server.music.service.MusicService;
@@ -79,7 +80,8 @@ class MusicControllerUnitTest {
     @Test
     void testCreateTrack_givenTrack_returnsSuccess() throws Exception {
         TrackEntity track = getTrack();
-        when(musicService.saveTrack(getTrack())).thenReturn(track);
+        TrackCreateRequest trackRequest = getTrackRequest();
+        when(musicService.saveTrack(trackRequest)).thenReturn(track);
 
         String responseContent = mvc.perform(MockMvcRequestBuilders.
                         post("/api/music/track")
@@ -92,7 +94,7 @@ class MusicControllerUnitTest {
         TrackEntity responseTrack = mapper.readValue(responseContent, TrackEntity.class);
         assertEquals(track, responseTrack);
 
-        verify(musicService, times(1)).saveTrack(getTrack());
+        verify(musicService, times(1)).saveTrack(trackRequest);
     }
 
     private static List<TrackEntity> getTrackList() {
@@ -101,6 +103,10 @@ class MusicControllerUnitTest {
 
     private static TrackEntity getTrack() {
         return new TrackEntity(5l, "Atomic", "Blondie", "1980");
+    }
+
+    private static TrackCreateRequest getTrackRequest() {
+        return new TrackCreateRequest("Atomic", "Blondie", "1980");
     }
 
     private String fromFile() {

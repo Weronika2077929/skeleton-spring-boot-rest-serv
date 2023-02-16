@@ -1,9 +1,9 @@
 package com.firstClientServer.firstApp.server.music.service;
 
+import com.firstClientServer.firstApp.server.music.controller.payload.TrackCreateRequest;
 import com.firstClientServer.firstApp.server.music.controller.payload.TrackUpdateRequest;
 import com.firstClientServer.firstApp.server.music.entity.TrackEntity;
 import com.firstClientServer.firstApp.server.music.repository.TrackRepository;
-import jakarta.xml.bind.ValidationException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -12,7 +12,6 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -26,26 +25,13 @@ class MusicServiceUnitTest {
     private TrackRepository trackRepo;
 
     @Test
-    void testSaveTrack_givenNewTrack_returnSuccessTrack() throws ValidationException {
+    void testSaveTrack_givenNewTrack_returnSuccessTrack() {
         TrackEntity track = new TrackEntity(1l, "Title", "Artist", "1998");
-        when(trackRepo.existsById(Mockito.anyLong())).thenReturn(false);
+        TrackCreateRequest trackRequest = new TrackCreateRequest("Title", "Artist", "1998");
         when(trackRepo.save(Mockito.any())).thenReturn(track);
-        TrackEntity returnedTrack = musicService.saveTrack(track);
+        TrackEntity returnedTrack = musicService.saveTrack(trackRequest);
         assertEquals(track, returnedTrack);
-        verify(trackRepo, Mockito.times(1)).existsById(Mockito.anyLong());
-        verify(trackRepo, Mockito.times(1)).save(track);
-    }
-
-    @Test
-    void testSaveTrack_givenExistingTrack_returnValidationException() throws ValidationException {
-        TrackEntity track = new TrackEntity(1l, "Title", "Artist", "1998");
-        when(trackRepo.existsById(Mockito.anyLong())).thenReturn(true);
-
-        ValidationException validationException = assertThrows(ValidationException.class, () -> {
-            musicService.saveTrack(track);
-        });
-        assertEquals("Track already exists", validationException.getMessage());
-        verify(trackRepo, Mockito.never()).save(Mockito.any());
+        verify(trackRepo, Mockito.times(1)).save(Mockito.any());
     }
 
     @Test

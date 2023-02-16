@@ -1,6 +1,7 @@
 package com.firstClientServer.firstApp;
 
 import com.firstClientServer.firstApp.server.music.controller.MusicController;
+import com.firstClientServer.firstApp.server.music.controller.payload.TrackCreateRequest;
 import com.firstClientServer.firstApp.server.music.entity.TrackEntity;
 import com.firstClientServer.firstApp.server.music.repository.TrackRepository;
 import jakarta.xml.bind.ValidationException;
@@ -31,9 +32,10 @@ public class FirstAppApplicationIntegrationTests {
 
     @Test
     void testCreateTrack() throws ValidationException {
-        TrackEntity track = new TrackEntity(15L, "Title", "Artist", "2023");
 
-        musicController.saveTrack(track);
+        TrackCreateRequest trackRequest = new TrackCreateRequest("Title", "Artist", "2023");
+
+        musicController.saveTrack(trackRequest);
         Iterable<TrackEntity> tracks = trackRepo.findAll();
         assertThat(tracks).extracting(TrackEntity::getTitle).contains("Title");
     }

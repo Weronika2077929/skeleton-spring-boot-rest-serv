@@ -1,11 +1,11 @@
 package com.firstClientServer.firstApp.server.music.controller;
 
+import com.firstClientServer.firstApp.server.music.controller.payload.TrackCreateRequest;
 import com.firstClientServer.firstApp.server.music.controller.payload.TrackUpdateRequest;
 import com.firstClientServer.firstApp.server.music.entity.TrackEntity;
 import com.firstClientServer.firstApp.server.music.handler.Exists_wl;
 import com.firstClientServer.firstApp.server.music.service.MusicService;
 import jakarta.validation.Valid;
-import jakarta.xml.bind.ValidationException;
 import lombok.AllArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +22,7 @@ public class MusicController {
     private final MusicService musicService;
 
     @PostMapping("/track")
-    public TrackEntity saveTrack(@Valid @RequestBody TrackEntity track) throws ValidationException {
+    public TrackEntity saveTrack(@Valid @RequestBody TrackCreateRequest track) {
         return musicService.saveTrack(track);
     }
 

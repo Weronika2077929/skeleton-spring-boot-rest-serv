@@ -1,9 +1,9 @@
 package com.firstClientServer.firstApp.server.music.service;
 
+import com.firstClientServer.firstApp.server.music.controller.payload.TrackCreateRequest;
 import com.firstClientServer.firstApp.server.music.controller.payload.TrackUpdateRequest;
 import com.firstClientServer.firstApp.server.music.entity.TrackEntity;
 import com.firstClientServer.firstApp.server.music.repository.TrackRepository;
-import jakarta.xml.bind.ValidationException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,11 +17,14 @@ public class MusicService {
 
     private final TrackRepository trackRepo;
 
-    public TrackEntity saveTrack(TrackEntity track) throws ValidationException {
-        if (trackRepo.existsById(track.getId())) {
-            throw new ValidationException("Track already exists");
-        }
-        return trackRepo.save(track);
+    public TrackEntity saveTrack(TrackCreateRequest track) {
+        TrackEntity saveTrack = TrackEntity.builder()
+                .title(track.getTitle())
+                .artist(track.getArtist())
+                .releaseYear(track.getReleaseYear())
+                .build();
+
+        return trackRepo.save(saveTrack);
     }
 
     public TrackEntity getTrack(long id) {
